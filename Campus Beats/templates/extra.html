@@ -1,0 +1,83 @@
+<?php
+$q=1;
+session_start();
+include("connect.php");
+include("functions.php");
+?>
+
+/////logout
+
+<?php
+
+if(isset($_POST['logout'])){
+	$_SESSION = array();// destroy all of the session variables
+    if (ini_get("session.use_cookies")) {
+        $params = session_get_cookie_params();
+        setcookie(session_name(), '', time() - 42000,
+            $params["path"], $params["domain"],
+            $params["secure"], $params["httponly"]
+        );
+    }
+    session_destroy();
+
+    redirect_to("project.php");
+}
+?>
+
+////connect
+
+<?php
+define("DB_SERVER","localhost");
+define("DB_USER","root");
+define("DB_PASSWORD","pranjul");
+define("DB_NAME","project");
+
+$connection=mysqli_connect(DB_SERVER,DB_USER,DB_PASSWORD,DB_NAME);
+
+//test if connection occured
+if(mysqli_errno($connection))
+{ die("connection failed" . mysqli_error() ."(". mysqli_errno().")");
+} 
+ ?>
+  
+////session expire
+
+<?php
+$q=$value="";
+$time_duration=1000;
+$q=$_SESSION['login_user'];
+$q=verify_client($q);
+if(!isset($q["username"]))
+{    
+	include("closeconnection.php");
+	redirect_to("project.php");
+}else{
+    //session expire if person inactive
+   if($value==1)
+   {
+   	redirect_to("project.php");
+   }
+    
+    if(isset($_SESSION['time_out']))
+    {
+    	$SESSION_life=time()-$_SESSION['time_out'];
+    	if($SESSION_life>$time_duration)
+    	{
+    		session_destroy();
+    		$value=1;
+    		echo "session has been expired";
+    		redirect_to("project.php");
+    	}
+    }
+
+$_SESSION['time_out']=time();
+}
+?>
+
+////cloeconnection
+
+
+<?php
+if(isset($connection)) 
+mysqli_close($connection);
+?>
